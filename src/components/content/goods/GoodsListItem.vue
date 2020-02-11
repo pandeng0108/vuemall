@@ -1,10 +1,10 @@
 <template>
   <div class="goods-item">
-    <img :src="goodsItem.img" alt="">
+    <img :src="goodsItem.show.img" alt="" @load="imageLoad">
     <div class="goods-info">
-      <p>{{goodsItem.name}}</p>
+      <p>{{goodsItem.title}}</p>
       <span class="price">{{goodsItem.price}}</span>
-      <span class="collect">{{goodsItem.review_count}}</span>
+      <span class="collect">{{goodsItem.cfav}}</span>
     </div>
   </div>
 </template>
@@ -19,6 +19,11 @@
               return {}
             }
           }
+      },
+      methods:{
+        imageLoad(){
+          this.$emit('itemImageLoad')
+        }
       }
     }
 </script>
@@ -27,7 +32,7 @@
   .goods-item {
     padding-bottom: 40px;
     position: relative;
-    width: 50%;
+    width: 48%;
   }
   .goods-item img {
     width: 100%;
@@ -59,7 +64,7 @@
     content: '';
     position: absolute;
     left: -15px;
-    top: -1px;
+    top: 0px;
     width: 14px;
     height: 14px;
     background: url("~@assets/img/common/collect.svg") 0 0/14px 14px;
