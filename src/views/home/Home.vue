@@ -53,10 +53,12 @@ import {
   getHomeMultidata,
   getHomeGoods
 } from "@network/home";
-import {debounce} from '../../commonjs/utils'
+import {itemListenerMixin} from '@commonjs/mixin'
+
 
     export default {
       name: "Home",
+      mixins:[itemListenerMixin],
       components: {
         NavBar,
         TabControl,
@@ -85,7 +87,8 @@ import {debounce} from '../../commonjs/utils'
           currentType: 'pop',
           isShowBackTop: false,
           tabOffsetTop: 0,
-          isTabFixed: false
+          isTabFixed: false,
+          saveHomeY: 0,
         }
       },
       //组件创建完毕后回调函数
@@ -101,13 +104,20 @@ import {debounce} from '../../commonjs/utils'
 
       },
       mounted() {
-        //1.图片加载完毕后的事件监听，解决计算图片未加载完毕页面布局bug
-        const refresh = debounce(this.$refs.scroll.refresh,200)
-        //监听item中的图片加载完成,最好在mounted中去处理，如果在created处理有可能是获取不到$refs.scroll
-        this.$bus.$on('itemImageLoad',()=>{
-          refresh()
-        })
+      //已经使用混入的方式完成了mounted对图片加载完成的监控事件
+      },
+      //处于活跃时的状态
+      activated(){
+        this.$refs.scroll.scrollTo(0,this.saveHomeY,0)
+        this.$refs.scroll.refresh()
+      },
+      //处于离开后的状态
+      deactivated() {
+        //1.保存我们的y值
+        this.saveHomeY = this.$refs.scroll.getScrollY()
 
+        //2.取消全局事件的监听
+        this.$bus.$off('itemImgLoad',this.itemImgListener)
       },
       methods:{
         //网络请求相关方法
@@ -151,8 +161,11 @@ import {debounce} from '../../commonjs/utils'
               break
           }
           //让两个相同的组件点击事件保持一致
-          this.$refs.tabControl1.currentIndex = index
-          this.$refs.tabControl2.currentIndex = index
+          if (this.$refs.tabControl1 !== undefined){
+            this.$refs.tabControl1.currentIndex = index
+            this.$refs.tabControl2.currentIndex = index
+          }
+
         },
         backClick(){
           // console.log('组件点击事件监听到了')
@@ -164,7 +177,7 @@ import {debounce} from '../../commonjs/utils'
 
         //监听banner图片加载完毕,获取offsetTop值
         SwiperImageMore(){
-          console.log(this.$refs.tabControl2.$el.offsetTop);
+          // console.log(this.$refs.tabControl2.$el.offsetTop);
           this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop
         },
 
